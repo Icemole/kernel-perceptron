@@ -1,0 +1,163 @@
+% Classifier function.
+function value = classifier( x, kernel, alphas, classes, verbose )
+	newAlphas = alphas;
+	negativeClasses = find( classes < 0 );
+	newAlphas( negativeClasses ) = -newAlphas( negativeClasses );
+	if( verbose )
+		printf( "\nPerforming classification according to kernels...\n" );
+		nrows = rows( alphas );
+		for i = 1 : nrows
+			printf( "Alpha_%d * class_%d (%d) * Kernel( %d, %d ) (%f) = %f\n", i, i, newAlphas( i ), i, x, kernel( i, x ), newAlphas( i ) * kernel( i, x ) );
+		endfor
+		printf( "Kernel sum: " );
+	endif
+	value = newAlphas' * kernel( :, x )
+	if( verbose )
+		printf( "\nSumming bias to the previous result...\n" );
+		for i = 1 : nrows
+			printf( "Alpha_%d * class_%d (%d)\n", i, i, newAlphas( i ) );
+		endfor
+		printf( "Total value: " );
+	endif
+	value += sum( newAlphas )
+	if( verbose )
+		printf( "\n" );
+	endif
+endfunction
+
+sep = "------------------------";
+
+dimensions = input( "Number of dimensions of each sample: " );
+numSamples = input( "Number of samples: " );
+printf( "%s\n", sep );
+
+kernel = [25 1 9 9; 1 4 0 1; 9 0 9 4; 9 1 4 4];
+alphas = [0; 0; 0; 0];
+classes = [1; -1; 1; -1];
+verbose = true;
+
+% Sample matrix. Its structure is as follows:
+% - Every row is a sample.
+% - Every column is the sample's value on the
+% dimension given by the column.
+%
+% samples = zeros( numSamples, dimensions );
+% Define it now if you do not want to be asked for it later.
+
+
+% Class vector. The i-th element corresponds to
+% the class to which the i-th sample belongs.
+%
+% classes = zeros( numSamples, 1 );
+% Define it if you do not want to be asked for it later.
+
+
+% Alpha (learning rate) coefficients. The i-th
+% element corresponds to the learning rate of
+% the classifier with respect to the i-th sample.
+%
+% alphas = zeros( numSamples, 1 );
+% Define it if you do not want to be asked for it later.
+
+
+% Gramm matrix. It corresponds to the values of the
+% kernel function of every sample with respect to
+% each other, so that the ( i, j )-th position of the
+% matrix is the value of K( i, j ).
+%
+% kernel = zeros( numSamples, numSamples );
+% Define it if you do not want to be asked for it later.
+
+
+% Level of verbosity. If true, it prints the steps done
+% on each iteration.
+% Examine the function classifier() for more details.
+%
+% verbose = true;
+% Define it if you do not want to be asked for it later.
+
+
+% Setting level of verbosity.
+if( exist( "verbose", "var" ) != 1 )
+	verbose = yes_or_no( "Do you want to enable verbosity?" );
+endif
+
+% Filling sample matrix.
+if( exist( "samples", "var" ) != 1 )
+	for i = 1 : numSamples
+		printf( "\nSAMPLE %d\n", i );
+		for j = 1 : dimensions
+			printf( "Dimension %d: ", i );
+			samples( i, j ) = input( "" );
+		endfor
+		printf( "Sample class: " );
+		class( i ) = input( "" );
+	endfor
+endif
+
+% Filling alpha coefficients.
+if( exist( "alphas", "var" ) != 1 )
+	printf( "\n\n%s\n", sep );
+	printf( "Alpha coefficients\n\n" );
+	for i = 1 : numSamples
+		printf( "Alpha of sample number %d: ", i );
+		alphas( i ) = input( "" );
+	endfor
+endif
+
+% Filling Kernel matrix.
+	if( exist( "kernel", "var" ) != 1 )
+	printf( "\n\n%s\n", sep );
+	printf( "Proceeding to fill the Kernel matrix...\n" );
+	if yes_or_no( "Is the matrix symmetric? " )
+		% The matrix is symmetric. We need to ask less values.
+		for i = 1 : numSamples
+			for j = 1 : i
+				printf( "K( sample_%d, sample_%d ) = ", i, j );
+				kernel( i, j ) = input( "" );
+				kernel( j, i ) = kernel( i, j );
+			endfor
+		endfor
+	else
+		% The matrix is not symmetric. Ask for more values.
+		for i = 1 : numSamples
+			for j = 1 : numSamples
+				printf( "K( sample_%d, sample_%d ) = ", i, j );
+				kernel( i, j ) = input( "" );
+			endfor
+		endfor
+	endif
+	printf( "Kernel matrix filled.\n\n" );
+endif
+
+% Beginning of the Kernel-Perceptron algorithm.
+printf( "\n\nStarting Kernel-Perceptron algorithm...\n" );
+correctlyClassified = 0;
+iteration = 0;
+while( correctlyClassified < numSamples )
+	printf( "%s\n", sep );
+	printf( "ITERATION %d\n", iteration );
+	correctlyClassified = 0;
+	% Sadly, this for loop cannot be optimized through
+	% the usage of matrix multiplications because
+	% the values of alpha will possibly be changing
+	% throughout the iterations.
+	for i = 1 : numSamples
+		val = classifier( i, kernel, alphas, classes, verbose );
+		if( classes( i ) * val <= 0 )
+			if( verbose )
+				printf( "Error! Summing 1 to alpha_%d...\n", i );
+			endif
+			alphas( i )++;
+		else
+			if( verbose )
+				printf( "The sample has been correctly classified!\n" );
+			endif
+			correctlyClassified++;
+		endif
+		printf( "Alpha vector at the end of this iteration:\n" );
+		alphas
+	endfor
+	iteration++;
+	printf( "Total number of errors: %d\n\n", (numSamples - correctlyClassified) );
+endwhile
