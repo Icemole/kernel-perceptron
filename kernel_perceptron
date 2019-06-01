@@ -25,19 +25,20 @@ function value = classifier( x, kernel, alphas, classes, verbose )
 	endif
 endfunction
 
+
 sep = "------------------------";
+
 
 dimensions = input( "Number of dimensions of each sample: " );
 numSamples = input( "Number of samples: " );
-printf( "%s\n", sep );
 
-
-% Function for which the Kernel matrix is performed.
-% It should be called "kernel_function".
+% Function by which the Kernel matrix is obtained.
+% It should be called "kernel_function", and should have
+% the following parameters:
 % 
-% function result = kernel_function( sample_1, sample_2 )
+% function result = kernel_function( sample_matrix, sample_1, sample_2 )
 % %%%%%%%%%%%%%%%%%%
-% YOUR_FUNCTION_HERE
+% YOUR FUNCTION HERE
 % %%%%%%%%%%%%%%%%%%
 % 
 % Note that sample_1 and sample_2 correspond to numbers
@@ -67,7 +68,7 @@ printf( "%s\n", sep );
 % dimension given by the column.
 %
 % samples = zeros( numSamples, dimensions );
-% Define it now if you do not want to be asked for it later.
+% Define it if you do not want to be asked for it later.
 
 
 % Class vector. The i-th element corresponds to
@@ -81,8 +82,8 @@ printf( "%s\n", sep );
 % element corresponds to the learning rate of
 % the classifier with respect to the i-th sample.
 %
-alphas = zeros( numSamples, 1 );
 % Define it if you do not want to be asked for it later.
+alphas = zeros( numSamples, 1 );
 
 
 % Gramm matrix. It corresponds to the values of the
@@ -98,18 +99,18 @@ alphas = zeros( numSamples, 1 );
 % on each iteration.
 % Examine the function classifier() for more details.
 %
-% verbose = true;
 % Define it if you do not want to be asked for it later.
+verbose = true;
 
+
+printf( "%s\n", sep );
 
 % Setting level of verbosity.
-verbose = true;
 if( exist( "verbose", "var" ) != 1 )
 	verbose = yes_or_no( "Do you want to enable verbosity?" );
 endif
 
 % Filling sample matrix.
-samples = zeros( numSamples, numSamples );
 if( exist( "samples", "var" ) != 1 )
 	for i = 1 : numSamples
 		printf( "\nSAMPLE %d\n", i );
@@ -146,7 +147,7 @@ if( exist( "kernel_function" ) == 103 )
 			endif
 		endfor
 	endfor
-else if( exist( "kernel", "var" ) != 1 )
+elseif( exist( "kernel", "var" ) != 1 )
 	% The matrix is symmetric. We need to ask half of the values.
 	for i = 1 : numSamples
 		for j = 1 : i
@@ -157,9 +158,9 @@ else if( exist( "kernel", "var" ) != 1 )
 			endif
 		endfor
 	endfor
-	kernel
-	printf( "Kernel matrix filled.\n\n" );
 endif
+
+printf( "Kernel matrix filled.\n\n" );
 
 % Beginning of the Kernel-Perceptron algorithm.
 printf( "\n\nStarting Kernel-Perceptron algorithm...\n" );
