@@ -50,16 +50,16 @@ numSamples = input( "Number of samples: " );
 % type in the kernel matrix.
 % 
 % Example of a multinomial kernel:
-% function result = kernel_function( samples, sample_1, sample_2 )
-%	result = samples( sample_1, : ) * samples( sample_2, : )';
-%	% Take into account that because the samples are stored as rows,
-%	% for the scalar product operation to work you will need to
-%	% transpose the second sample so that a row vector is multiplied
-%	% by a column vector.
-% 
-%	result += 2;
-%	result = result^2;
-% endfunction
+function result = kernel_function( samples, sample_1, sample_2 )
+	result = samples( sample_1, : ) * samples( sample_2, : )';
+	% Take into account that because the samples are stored as rows,
+	% for the scalar product operation to work you will need to
+	% transpose the second sample so that a row vector is multiplied
+	% by a column vector.
+	
+	result += 1;
+	result = result^2;
+endfunction
 
 
 % Sample matrix. Its structure is as follows:
@@ -111,6 +111,9 @@ if( exist( "verbose", "var" ) != 1 )
 endif
 
 % Filling sample matrix.
+if( exist( "classes", "var" ) != 1 )
+	classes = zeros( numSamples, 1 );
+endif
 if( exist( "samples", "var" ) != 1 )
 	for i = 1 : numSamples
 		printf( "\nSAMPLE %d\n", i );
@@ -118,10 +121,8 @@ if( exist( "samples", "var" ) != 1 )
 			printf( "Dimension %d: ", j );
 			samples( i, j ) = input( "" );
 		endfor
-		if( exist( "classes", "var" ) != 1 )
-			printf( "Sample class: " );
-			class( i ) = input( "" );
-		endif
+		printf( "Sample class: " );
+		classes( i ) = input( "" );
 	endfor
 endif
 
