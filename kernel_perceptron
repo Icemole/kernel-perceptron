@@ -31,10 +31,35 @@ dimensions = input( "Number of dimensions of each sample: " );
 numSamples = input( "Number of samples: " );
 printf( "%s\n", sep );
 
-kernel = [25 1 9 9; 1 4 0 1; 9 0 9 4; 9 1 4 4];
-alphas = [0; 0; 0; 0];
-classes = [1; -1; 1; -1];
-verbose = true;
+
+% Function for which the Kernel matrix is performed.
+% It should be called "kernel_function".
+% 
+% function result = kernel_function( sample_1, sample_2 )
+% %%%%%%%%%%%%%%%%%%
+% YOUR_FUNCTION_HERE
+% %%%%%%%%%%%%%%%%%%
+% 
+% Note that sample_1 and sample_2 correspond to numbers
+% according to the order in which you typed in the samples,
+% so you should properly index them on the samples matrix
+% (see right below).
+% 
+% Define it now so that you do not have to manually
+% type in the kernel matrix.
+% 
+% Example of a multinomial kernel:
+% function result = kernel_function( samples, sample_1, sample_2 )
+%	result = samples( sample_1, : ) * samples( sample_2, : )';
+%	% Take into account that because the samples are stored as rows,
+%	% for the scalar product operation to work you will need to
+%	% transpose the second sample so that a row vector is multiplied
+%	% by a column vector.
+% 
+%	result += 2;
+%	result = result^2;
+% endfunction
+
 
 % Sample matrix. Its structure is as follows:
 % - Every row is a sample.
@@ -56,7 +81,7 @@ verbose = true;
 % element corresponds to the learning rate of
 % the classifier with respect to the i-th sample.
 %
-% alphas = zeros( numSamples, 1 );
+alphas = zeros( numSamples, 1 );
 % Define it if you do not want to be asked for it later.
 
 
@@ -78,20 +103,24 @@ verbose = true;
 
 
 % Setting level of verbosity.
+verbose = true;
 if( exist( "verbose", "var" ) != 1 )
 	verbose = yes_or_no( "Do you want to enable verbosity?" );
 endif
 
 % Filling sample matrix.
+samples = zeros( numSamples, numSamples );
 if( exist( "samples", "var" ) != 1 )
 	for i = 1 : numSamples
 		printf( "\nSAMPLE %d\n", i );
 		for j = 1 : dimensions
-			printf( "Dimension %d: ", i );
+			printf( "Dimension %d: ", j );
 			samples( i, j ) = input( "" );
 		endfor
-		printf( "Sample class: " );
-		class( i ) = input( "" );
+		if( exist( "classes", "var" ) != 1 )
+			printf( "Sample class: " );
+			class( i ) = input( "" );
+		endif
 	endfor
 endif
 
@@ -106,27 +135,29 @@ if( exist( "alphas", "var" ) != 1 )
 endif
 
 % Filling Kernel matrix.
-	if( exist( "kernel", "var" ) != 1 )
-	printf( "\n\n%s\n", sep );
-	printf( "Proceeding to fill the Kernel matrix...\n" );
-	if yes_or_no( "Is the matrix symmetric? " )
-		% The matrix is symmetric. We need to ask less values.
-		for i = 1 : numSamples
-			for j = 1 : i
-				printf( "K( sample_%d, sample_%d ) = ", i, j );
-				kernel( i, j ) = input( "" );
+printf( "\n\n%s\n", sep );
+printf( "Proceeding to fill the Kernel matrix...\n" );
+if( exist( "kernel_function" ) == 103 )
+	for i = 1 : numSamples
+		for j = 1 : i
+			kernel( i, j ) = kernel_function( samples, i, j );
+			if( i != j )
 				kernel( j, i ) = kernel( i, j );
-			endfor
+			endif
 		endfor
-	else
-		% The matrix is not symmetric. Ask for more values.
-		for i = 1 : numSamples
-			for j = 1 : numSamples
-				printf( "K( sample_%d, sample_%d ) = ", i, j );
-				kernel( i, j ) = input( "" );
-			endfor
+	endfor
+else if( exist( "kernel", "var" ) != 1 )
+	% The matrix is symmetric. We need to ask half of the values.
+	for i = 1 : numSamples
+		for j = 1 : i
+			printf( "K( sample_%d, sample_%d ) = ", i, j );
+			kernel( i, j ) = input( "" );
+			if( i != j )
+				kernel( j, i ) = kernel( i, j );
+			endif
 		endfor
-	endif
+	endfor
+	kernel
 	printf( "Kernel matrix filled.\n\n" );
 endif
 
